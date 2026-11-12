@@ -1,0 +1,34 @@
+{
+  "safe_test_values": [
+    "security_test_123",
+    "test"
+  ],
+  "reflection_marker": "SECURITY_SCANNER_REFLECTION_TEST_7X9A",
+  "sql_error_signatures": [
+    {
+      "label": "SQL syntax error",
+      "pattern": "SQL syntax|syntax error"
+    },
+    {
+      "label": "SQLite error",
+      "pattern": "sqlite3?\\.OperationalError|unrecognized token"
+    }
+  ],
+  "security_headers": [
+    {
+      "name": "Content-Security-Policy",
+      "severity": "Low",
+      "recommendation": "콘텐츠 보안 정책 헤더 적용"
+    },
+    {
+      "name": "X-Content-Type-Options",
+      "severity": "Low",
+      "recommendation": "nosniff 헤더 적용"
+    },
+    {
+      "name": "Referrer-Policy",
+      "severity": "Low",
+      "recommendation": "Referrer-Policy 적용 검토"
+    }
+  ]
+}
