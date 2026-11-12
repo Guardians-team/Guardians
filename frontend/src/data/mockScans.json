@@ -1,0 +1,269 @@
+[
+  {
+    "id": "20261114-213000",
+    "target": "http://127.0.0.1:5000",
+    "scan_date": "2026-11-14T21:30:00",
+    "http_status": 200,
+    "pages_scanned": [
+      "/",
+      "/vuln",
+      "/safe",
+      "/echo"
+    ],
+    "forms_found": [
+      {
+        "form_number": 1,
+        "method": "GET",
+        "action": "/vuln",
+        "inputs": [
+          {
+            "name": "username",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "form_number": 2,
+        "method": "GET",
+        "action": "/safe",
+        "inputs": [
+          {
+            "name": "username",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "form_number": 3,
+        "method": "GET",
+        "action": "/echo",
+        "inputs": [
+          {
+            "name": "q",
+            "type": "text"
+          }
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "title": "SQL Injection: 입력값이 쿼리 구조를 변경함",
+        "type": "SQL Injection",
+        "severity": "Critical",
+        "status": "Confirmed",
+        "location": "/vuln",
+        "parameter": "username",
+        "steps": "1. /vuln 검색 폼의 username 입력칸에 작은따옴표 입력\n2. 항상 참 조건과 항상 거짓 조건을 각각 입력\n3. 두 응답의 결과 건수 비교",
+        "expected": "입력값과 관계없이 쿼리 구조가 유지되어야 함",
+        "actual": "참 조건 3건, 거짓 조건 0건으로 응답이 달라짐",
+        "evidence": "boolean diff 3 vs 0, sqlite3.OperationalError",
+        "recommendation": "파라미터 바인딩(Prepared Statement) 적용"
+      },
+      {
+        "title": "Reflected XSS: 입력값이 인코딩 없이 응답에 반영됨",
+        "type": "XSS",
+        "severity": "High",
+        "status": "Potential",
+        "location": "/echo",
+        "parameter": "q",
+        "steps": "1. /echo 폼의 q 입력칸에 검증용 마커와 꺾쇠 문자 입력\n2. 응답 HTML에서 마커 주변 문자 확인",
+        "expected": "특수문자가 HTML 엔티티로 인코딩되어야 함",
+        "actual": "꺾쇠 문자가 인코딩 없이 그대로 출력됨",
+        "evidence": "marker reflected unencoded",
+        "recommendation": "출력 시 HTML 인코딩, CSP 적용"
+      },
+      {
+        "title": "데이터베이스 오류 메시지 노출",
+        "type": "Error Disclosure",
+        "severity": "Medium",
+        "status": "Confirmed",
+        "location": "/vuln",
+        "parameter": "username",
+        "steps": "1. /vuln 검색 폼에 작은따옴표 입력\n2. 응답 본문의 오류 메시지 확인",
+        "expected": "일반화된 오류 메시지만 표시되어야 함",
+        "actual": "DB 예외 클래스와 쿼리 일부가 노출됨",
+        "evidence": "HTTP 500, pattern: unrecognized token",
+        "recommendation": "공통 오류 페이지 적용, 상세 오류는 서버 로그로만 기록"
+      },
+      {
+        "title": "보안 헤더 누락: Content-Security-Policy",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Potential",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "Content-Security-Policy 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "Content-Security-Policy 헤더 적용"
+      },
+      {
+        "title": "보안 헤더 누락: X-Content-Type-Options",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Potential",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "X-Content-Type-Options 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "X-Content-Type-Options 헤더 적용"
+      },
+      {
+        "title": "보안 헤더 누락: Referrer-Policy",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Needs Review",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "Referrer-Policy 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "Referrer-Policy 헤더 적용"
+      }
+    ]
+  },
+  {
+    "id": "20261113-162000",
+    "target": "http://localhost:3000",
+    "scan_date": "2026-11-13T16:20:00",
+    "http_status": 200,
+    "pages_scanned": [
+      "/"
+    ],
+    "forms_found": [],
+    "findings": [
+      {
+        "title": "보안 헤더 누락: Content-Security-Policy",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Potential",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "Content-Security-Policy 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "Content-Security-Policy 헤더 적용"
+      },
+      {
+        "title": "보안 헤더 누락: Referrer-Policy",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Needs Review",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "Referrer-Policy 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "Referrer-Policy 헤더 적용"
+      }
+    ]
+  },
+  {
+    "id": "20261112-111500",
+    "target": "http://127.0.0.1:5000",
+    "scan_date": "2026-11-12T11:15:00",
+    "http_status": 200,
+    "pages_scanned": [
+      "/",
+      "/vuln",
+      "/safe"
+    ],
+    "forms_found": [
+      {
+        "form_number": 1,
+        "method": "GET",
+        "action": "/vuln",
+        "inputs": [
+          {
+            "name": "username",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "form_number": 2,
+        "method": "GET",
+        "action": "/safe",
+        "inputs": [
+          {
+            "name": "username",
+            "type": "text"
+          }
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "title": "SQL Injection: 입력값이 쿼리 구조를 변경함",
+        "type": "SQL Injection",
+        "severity": "Critical",
+        "status": "Confirmed",
+        "location": "/vuln",
+        "parameter": "username",
+        "steps": "1. /vuln 검색 폼의 username 입력칸에 작은따옴표 입력\n2. 항상 참 조건과 항상 거짓 조건을 각각 입력\n3. 두 응답의 결과 건수 비교",
+        "expected": "입력값과 관계없이 쿼리 구조가 유지되어야 함",
+        "actual": "참 조건 3건, 거짓 조건 0건으로 응답이 달라짐",
+        "evidence": "boolean diff 3 vs 0, sqlite3.OperationalError",
+        "recommendation": "파라미터 바인딩(Prepared Statement) 적용"
+      },
+      {
+        "title": "데이터베이스 오류 메시지 노출",
+        "type": "Error Disclosure",
+        "severity": "Medium",
+        "status": "Confirmed",
+        "location": "/vuln",
+        "parameter": "username",
+        "steps": "1. /vuln 검색 폼에 작은따옴표 입력\n2. 응답 본문의 오류 메시지 확인",
+        "expected": "일반화된 오류 메시지만 표시되어야 함",
+        "actual": "DB 예외 클래스와 쿼리 일부가 노출됨",
+        "evidence": "HTTP 500, pattern: unrecognized token",
+        "recommendation": "공통 오류 페이지 적용, 상세 오류는 서버 로그로만 기록"
+      },
+      {
+        "title": "보안 헤더 누락: Content-Security-Policy",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Potential",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "Content-Security-Policy 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "Content-Security-Policy 헤더 적용"
+      },
+      {
+        "title": "보안 헤더 누락: X-Content-Type-Options",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Potential",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "X-Content-Type-Options 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "X-Content-Type-Options 헤더 적용"
+      },
+      {
+        "title": "보안 헤더 누락: Referrer-Policy",
+        "type": "Security Header",
+        "severity": "Low",
+        "status": "Needs Review",
+        "location": "/",
+        "parameter": "",
+        "steps": "1. 대상 URL에 GET 요청\n2. 응답 헤더 목록 확인",
+        "expected": "Referrer-Policy 헤더가 설정되어야 함",
+        "actual": "응답에 해당 헤더 없음",
+        "evidence": "header absent",
+        "recommendation": "Referrer-Policy 헤더 적용"
+      }
+    ]
+  }
+]

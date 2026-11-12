@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   테마 토큰
+   · 화이트      : :root (기본값)
+   · 다크 네이비 : [data-theme="dark"]
+   색을 바꾸고 싶으면 여기 값만 고치면 화면 전체에 반영됩니다.
+   ───────────────────────────────────────────── */
+:root {
+  --bg: #f5f7fc;
+  --surface: #ffffff;
+  --card-line: #eaeef6;
+  --line: #eceff5;
+  --ink: #111827;
+  --soft: #5b6577;
+  --accent: #2563eb;
+  --accent-glow: rgba(37, 99, 235, 0.28);
+  --tile: #eaf1fe;
+  --spark: #3b74e8;
+  --icon-blue: #3b74e8;
+  --icon-warn: #1f4fc9;
+  --thead: #f3f5f9;
+  --axis: #d7dde8;
+  --grid: #eef1f6;
+  --search-bg: #ffffff;
+  --shadow: 0 2px 12px rgba(24, 39, 75, 0.05);
+  --avatar-bg: #e3e8f1;
+  --avatar-fg: #9aa6ba;
+
+  --ok-bg: #e3f6ea;   --ok-text: #1e8a4c;
+  --xls-bg: #edf8f1;  --xls-line: #bfe5cd;  --xls-text: #1e7a46;
+  --pdf-bg: #fdeef0;  --pdf-line: #f6c5cc;  --pdf-text: #c2283e;
+
+  --side-bg: linear-gradient(180deg, #1d2d5e 0%, #172552 55%, #14204a 100%);
+  --side-text: #d5ddf0;
+  --side-mute: #9faacb;
+  --side-card: rgba(255, 255, 255, 0.06);
+  --side-active: linear-gradient(90deg, #2f5fd0, #3a6fe2);
+  --side-wave: rgba(170, 190, 240, 0.16);
+  --side-wave-fill: rgba(120, 145, 215, 0.1);
+  --logo: #4f8bff;
+
+  --cta-bg: linear-gradient(135deg, #eef3fd 0%, #e4ecfb 100%);
+  --cta-blob: rgba(255, 255, 255, 0.55);
+
+  /* 위험도: 막대 색 / 막대 위쪽 색 / 글자 색 / 옅은 배경 */
+  --sev-crit: #e0475d;  --sev-crit-top: #ee7584;  --sev-crit-text: #b4233a;  --sev-crit-soft: #fce9ec;
+  --sev-high: #ee8a3c;  --sev-high-top: #f5ac70;  --sev-high-text: #a6540f;  --sev-high-soft: #fdefe1;
+  --sev-med:  #5e8eeb;  --sev-med-top:  #86abf2;  --sev-med-text:  #2a56b8;  --sev-med-soft:  #e8effd;
+  --sev-low:  #b4bfd2;  --sev-low-top:  #cdd5e3;  --sev-low-text:  #56627a;  --sev-low-soft:  #eef1f6;
+
+  /* 도넛 차트 조각 색 (건수가 많은 유형부터) */
+  --donut-1: #3567d6;  --donut-2: #78a2f2;  --donut-3: #a9b9d9;  --donut-4: #d5dcea;  --donut-5: #e6eaf2;
+}
+
+[data-theme="dark"] {
+  --bg: #0b1120;
+  --surface: #111a2e;
+  --card-line: #1d2a45;
+  --line: #1d2a45;
+  --ink: #e8edf7;
+  --soft: #9aa7c0;
+  --accent: #4d8bff;
+  --accent-glow: rgba(77, 139, 255, 0.35);
+  --tile: #17284d;
+  --spark: #5b9bff;
+  --icon-blue: #5b9bff;
+  --icon-warn: #4d8bff;
+  --thead: #16213a;
+  --axis: #2a3856;
+  --grid: #1a2640;
+  --search-bg: #121b30;
+  --shadow: none;
+  --avatar-bg: #22304f;
+  --avatar-fg: #8c9bba;
+
+  --ok-bg: rgba(52, 199, 123, 0.14);   --ok-text: #6ee7a8;
+  --xls-bg: rgba(52, 199, 123, 0.1);   --xls-line: rgba(52, 199, 123, 0.35);  --xls-text: #7ee2ae;
+  --pdf-bg: rgba(240, 74, 95, 0.1);    --pdf-line: rgba(240, 74, 95, 0.35);   --pdf-text: #ff9aaa;
+
+  --side-bg: linear-gradient(180deg, #0f1a36 0%, #0a1226 100%);
+  --side-text: #b9c5dd;
+  --side-mute: #7e8ba6;
+  --side-card: rgba(255, 255, 255, 0.05);
+  --side-active: linear-gradient(90deg, #2e62d6, #3b74e8);
+  --side-wave: rgba(120, 150, 220, 0.16);
+  --side-wave-fill: rgba(80, 110, 190, 0.08);
+  --logo: #5b9bff;
+
+  --cta-bg: linear-gradient(135deg, #13203f 0%, #101a33 100%);
+  --cta-blob: rgba(77, 139, 255, 0.1);
+
+  --sev-crit-text: #ff9aaa;  --sev-crit-soft: rgba(224, 71, 93, 0.16);
+  --sev-high-text: #f8b886;  --sev-high-soft: rgba(238, 138, 60, 0.16);
+  --sev-med-text:  #a9c4f8;  --sev-med-soft:  rgba(94, 142, 235, 0.18);
+  --sev-low: #56647f;  --sev-low-top: #6c7a96;  --sev-low-text: #b3bed3;  --sev-low-soft: rgba(140, 155, 186, 0.14);
+
+  --donut-1: #3e7bf0;  --donut-2: #7fa9f5;  --donut-3: #56688f;  --donut-4: #3a4a6b;  --donut-5: #2a3856;
+}
+
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-card-line bg-surface;
+    box-shadow: var(--shadow);
+  }
+  .card-title { @apply flex items-center gap-2.5 text-[19px] font-bold; }
+  .btn {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-accent font-bold text-white hover:brightness-110;
+    box-shadow: 0 6px 16px var(--accent-glow);
+  }
+  .btn-ghost { @apply btn border border-line bg-surface text-ink hover:bg-thead; }
+  .icon-btn {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-lg text-accent transition hover:bg-thead disabled:opacity-40;
+  }
+  .input {
+    @apply min-h-[46px] w-full rounded-lg border border-line bg-surface px-4 text-[15px] text-ink;
+  }
+  .th { @apply whitespace-nowrap px-3.5 py-3 text-left text-sm font-medium; }
+  .td { @apply px-3.5 py-2 text-[14.5px]; }
+}
+
+/* ── PDF 저장(인쇄) 전용 ── */
+.print-only { display: none; }
+
+@media print {
+  .screen-only { display: none !important; }
+  .print-only  { display: block; }
+  body { background: #fff; color: #111; }
+  @page { size: A4; margin: 16mm; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

@@ -1,0 +1,53 @@
+{
+  "evaluated_at": "2026-11-14T22:00:00",
+  "cases": [
+    {
+      "page": "/vuln",
+      "type": "SQL Injection",
+      "expected": "vulnerable",
+      "detected": true
+    },
+    {
+      "page": "/vuln-post",
+      "type": "SQL Injection",
+      "expected": "vulnerable",
+      "detected": true
+    },
+    {
+      "page": "/vuln-number",
+      "type": "SQL Injection",
+      "expected": "vulnerable",
+      "detected": false
+    },
+    {
+      "page": "/safe",
+      "type": "SQL Injection",
+      "expected": "safe",
+      "detected": false
+    },
+    {
+      "page": "/safe-post",
+      "type": "SQL Injection",
+      "expected": "safe",
+      "detected": false
+    },
+    {
+      "page": "/echo",
+      "type": "XSS",
+      "expected": "vulnerable",
+      "detected": true
+    },
+    {
+      "page": "/echo-attr",
+      "type": "XSS",
+      "expected": "vulnerable",
+      "detected": true
+    },
+    {
+      "page": "/escape",
+      "type": "XSS",
+      "expected": "safe",
+      "detected": false
+    }
+  ]
+}
