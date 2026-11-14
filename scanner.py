@@ -11,6 +11,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from reporter import generate_report
+from detectors import XSSDetector, SQLInjectionDetector
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -77,37 +78,28 @@ def collect_forms(html):
     return forms
 
 
+
 def inspect_response(response, payloads):
 
     findings = []
-
     body = response.text[:500000]
 
-    # SQL 오류 메시지 지표 확인
-    for signature in payloads.get(
-        "sql_error_signatures", []
-    ):
+    # XSS 정적 탐지
+    xss_detector = XSSDetector()
 
-        if re.search(
-            signature["pattern"],
+    findings.extend(
+        xss_detector.scan(body)
+    )
+
+    # SQL 오류 지표 탐지
+    sqli_detector = SQLInjectionDetector()
+
+    findings.extend(
+        sqli_detector.scan(
             body,
-            re.IGNORECASE
-        ):
-
-            findings.append({
-                "title": "Possible Database Error Disclosure",
-                "type": "SQL Injection Indicator",
-                "severity": "Medium",
-                "status": "Needs Review",
-                "location": response.url,
-                "evidence": signature["label"],
-                "recommendation": (
-                    "오류 메시지 노출 여부를 검토하고 "
-                    "일반화된 오류 응답을 적용하세요."
-                )
-            })
-
-            break
+            payloads.get("sql_error_signatures", [])
+        )
+    )
 
     # 보안 헤더 확인
     response_headers = {
@@ -133,6 +125,7 @@ def inspect_response(response, payloads):
             })
 
     return findings
+
 
 
 def scan(target):
