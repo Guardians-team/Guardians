@@ -70,12 +70,16 @@ def get_scan(scan_id):
 
 @app.post("/api/scan")
 def run_scan():
-    target = (request.get_json(silent=True) or {}).get("target", "").strip()
+    data = request.get_json(silent=True) or {}
+    target = data.get("target", "").strip()
+    mode = data.get("mode", "both")
     if not target:
         return jsonify({"error": "진단 대상 URL을 입력하세요."}), 400
+    if mode not in ("static", "dynamic", "both"):
+        mode = "both"
 
     try:
-        result = scan(target)
+        result = scan(target, mode=mode)
     except ValueError as error:                 # localhost가 아닌 주소 등
         return jsonify({"error": str(error)}), 400
     except requests.RequestException:
