@@ -99,10 +99,10 @@ export default function Settings() {
             <div className="flex flex-col gap-2">
               <h3 className="text-sm font-bold">점검하는 보안 헤더</h3>
               <ul className="flex flex-col gap-1.5">
-                {(rules.security_headers || []).map((h) => (
-                  <li key={h.name} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-thead px-3.5 py-2.5 text-sm">
-                    <span className="font-semibold">{h.name}</span>
-                    <SeverityBadge severity={h.severity} />
+                {Object.entries(rules.security_headers || {}).map(([name, description]) => (
+                  <li key={name} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-thead px-3.5 py-2.5 text-sm">
+                    <span className="font-semibold">{name}</span>
+                    <span className="text-[13px] text-soft">{description}</span>
                   </li>
                 ))}
               </ul>
