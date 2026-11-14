@@ -11,7 +11,12 @@ import requests
 from bs4 import BeautifulSoup
 
 from reporter import generate_report
+
+# 정적 탐지기 (친구 담당): 응답 본문을 읽어 패턴을 찾음
 from detectors import XSSDetector, SQLInjectionDetector
+
+# 동적 탐지기 (본인 담당): 폼에 값을 넣어 요청을 보내 확인
+from dynamic.sqli import detect as detect_sqli_dynamic
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -78,22 +83,18 @@ def collect_forms(html):
     return forms
 
 
-
 def inspect_response(response, payloads):
+    """정적 점검: 이미 받은 응답 본문과 헤더를 읽어 문제를 찾음 (요청을 더 보내지 않음)."""
 
     findings = []
     body = response.text[:500000]
 
     # XSS 정적 탐지
     xss_detector = XSSDetector()
-
-    findings.extend(
-        xss_detector.scan(body)
-    )
+    findings.extend(xss_detector.scan(body))
 
     # SQL 오류 지표 탐지
     sqli_detector = SQLInjectionDetector()
-
     findings.extend(
         sqli_detector.scan(
             body,
@@ -127,17 +128,28 @@ def inspect_response(response, payloads):
     return findings
 
 
+def tag_method(findings, method):
+    """각 finding 에 분석 방식(static/dynamic)을 표시. 이미 있으면 그대로 둠."""
+    for finding in findings:
+        finding.setdefault("method", method)
+    return findings
 
-def scan(target):
+
+def scan(target, mode="both"):
+    """
+    mode: "static" | "dynamic" | "both"
+      static  → 응답 본문·헤더를 읽어서 점검 (요청 1회)
+      dynamic → 폼에 값을 넣어 보내며 능동 점검
+      both    → 둘 다 (기본값)
+    """
 
     validate_target(target)
 
     payloads = load_payloads()
 
     session = requests.Session()
-
     session.headers.update({
-        "User-Agent": "Educational-Passive-Scanner/1.0"
+        "User-Agent": "Educational-Scanner/1.0"
     })
 
     # 리다이렉트를 자동으로 따라가지 않음
@@ -146,21 +158,25 @@ def scan(target):
         timeout=8,
         allow_redirects=False
     )
-
     response.raise_for_status()
 
     forms = collect_forms(response.text)
 
-    findings = inspect_response(
-        response,
-        payloads
-    )
+    findings = []
+
+    if mode in ("static", "both"):
+        findings += tag_method(inspect_response(response, payloads), "static")
+
+    if mode in ("dynamic", "both"):
+        findings += tag_method(
+            detect_sqli_dynamic(session, target, forms, payloads),
+            "dynamic"
+        )
 
     return {
         "target": target,
-        "scan_date": datetime.now().isoformat(
-            timespec="seconds"
-        ),
+        "mode": mode,
+        "scan_date": datetime.now().isoformat(timespec="seconds"),
         "http_status": response.status_code,
         "forms_found": forms,
         "findings": findings
@@ -176,11 +192,17 @@ def main():
         required=True,
         help="허가된 localhost 테스트 주소"
     )
+    parser.add_argument(
+        "--mode",
+        choices=["static", "dynamic", "both"],
+        default="both",
+        help="분석 방식 선택 (기본: both)"
+    )
 
     args = parser.parse_args()
 
     try:
-        result = scan(args.target)
+        result = scan(args.target, mode=args.mode)
 
     except (ValueError, requests.RequestException) as error:
         parser.error(str(error))
@@ -192,7 +214,8 @@ def main():
     generate_report(result, output)
 
     print("진단이 완료되었습니다.")
-    print(f"발견된 검토 항목: {len(result['findings'])}")
+    print(f"분석 방식: {result['mode']}")
+    print(f"발견된 항목: {len(result['findings'])}")
     print(f"리포트 저장 위치: {output}")
 
 
