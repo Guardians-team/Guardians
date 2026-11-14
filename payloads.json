@@ -9,7 +9,11 @@
         {
             "label": "Database exception",
             "pattern": "(database|db) (query|connection) (error|failed)"
-        }
+        },
+        {
+      "label": "SQLite error",
+      "pattern": "sqlite3?\\.OperationalError|unrecognized token|no such column"
+    }
     ],
     "security_headers": {
         "Content-Security-Policy": "콘텐츠 보안 정책 확인",
