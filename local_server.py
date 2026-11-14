@@ -1,7 +1,8 @@
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
-class TestHandler(BaseHTTPRequestHandler):
+class SecurityTestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
@@ -39,13 +40,29 @@ class TestHandler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
 
-server = HTTPServer(
-    ("127.0.0.1", 5000),
-    TestHandler
-)
+def run_server():
 
-print("테스트 서버 실행 중")
-print("주소: http://127.0.0.1:5000")
-print("종료하려면 Ctrl + C를 누르세요.")
+    host = "127.0.0.1"
+    port = 8001
 
-server.serve_forever()
+    server = HTTPServer(
+        (host, port),
+        SecurityTestHandler
+    )
+
+    print("Guardians 테스트 서버 실행 중")
+    print(f"주소: http://{host}:{port}")
+    print("종료하려면 Ctrl + C를 누르세요.")
+
+    try:
+        server.serve_forever()
+
+    except KeyboardInterrupt:
+        print("\n테스트 서버 종료")
+
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    run_server()
