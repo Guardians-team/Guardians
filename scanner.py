@@ -12,12 +12,12 @@ from bs4 import BeautifulSoup
 
 from reporter import generate_report
 
-# 정적 탐지기 (친구 담당): 응답 본문을 읽어 패턴을 찾음
+# 정적 탐지기
 from detectors import XSSDetector, SQLInjectionDetector
 
-# 동적 탐지기 (본인 담당): 폼에 값을 넣어 요청을 보내 확인
+# 동적 탐지기
 from dynamic.sqli import detect as detect_sqli_dynamic
-
+from dynamic.xss import detect as detect_xss_dynamic
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -170,6 +170,10 @@ def scan(target, mode="both"):
     if mode in ("dynamic", "both"):
         findings += tag_method(
             detect_sqli_dynamic(session, target, forms, payloads),
+            "dynamic"
+        )
+        findings += tag_method(
+            detect_xss_dynamic(session, target, forms, payloads),
             "dynamic"
         )
 
