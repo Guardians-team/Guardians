@@ -1,3 +1,4 @@
+<<<<<<< HEAD:test_server.py
 """
 로컬 전용 동적 분석 검증용 테스트 서버
 
@@ -12,10 +13,14 @@
 
 import html
 import sqlite3
+=======
+
+>>>>>>> origin/develop:local_server.py
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
 
+<<<<<<< HEAD:test_server.py
 HOST = "127.0.0.1"
 PORT = 5000
 
@@ -115,6 +120,9 @@ INDEX_HTML = """<!DOCTYPE html>
 
 # ── 요청 처리 ─────────────────────────────────────────────────────
 class TestHandler(BaseHTTPRequestHandler):
+=======
+class SecurityTestHandler(BaseHTTPRequestHandler):
+>>>>>>> origin/develop:local_server.py
 
     def send_html(self, status, content):
         data = content.encode("utf-8")
@@ -169,9 +177,38 @@ class TestHandler(BaseHTTPRequestHandler):
         print(f"[요청] {self.address_string()} {fmt % args}")
 
 
+<<<<<<< HEAD:test_server.py
 if __name__ == "__main__":
     server = HTTPServer((HOST, PORT), TestHandler)
     print("테스트 서버 실행 중")
     print(f"주소: http://{HOST}:{PORT}")
     print("종료하려면 Ctrl + C를 누르세요.")
     server.serve_forever()
+=======
+def run_server():
+
+    host = "127.0.0.1"
+    port = 8001
+
+    server = HTTPServer(
+        (host, port),
+        SecurityTestHandler
+    )
+
+    print("Guardians 테스트 서버 실행 중")
+    print(f"주소: http://{host}:{port}")
+    print("종료하려면 Ctrl + C를 누르세요.")
+
+    try:
+        server.serve_forever()
+
+    except KeyboardInterrupt:
+        print("\n테스트 서버 종료")
+
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    run_server()
+>>>>>>> origin/develop:local_server.py
