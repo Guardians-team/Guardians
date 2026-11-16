@@ -41,9 +41,9 @@ def generate_report(scan_result, output_path):
             finding.get("severity", ""),
             finding.get("status", ""),
             finding.get("location", ""),
-            "로컬 테스트 환경에서 동일한 점검 수행",
-            "보안 설정 및 출력 처리가 안전하게 적용되어야 함",
-            finding.get("evidence", ""),
+            finding.get("steps") or "로컬 테스트 환경에서 동일한 점검 수행",
+finding.get("expected") or "보안 설정 및 출력 처리가 안전하게 적용되어야 함",
+" / ".join(filter(None, [finding.get("actual"), finding.get("evidence")])),
             finding.get("recommendation", ""),
             scan_result.get("scan_date", "")
         ])
