@@ -57,7 +57,7 @@ export default function Topbar() {
           onChange={(e) => setTarget(e.target.value)}
           disabled={scanning}
           spellCheck={false}
-          placeholder={scanning ? "진단 중입니다…" : "진단할 URL을 입력하고 Enter (예: http://127.0.0.1:5000)"}
+          placeholder={scanning ? "진단 중입니다…" : "진단할 URL을 입력하고 Enter (예: http://127.0.0.1:8001)"}
           className="min-w-0 flex-1 border-none bg-transparent text-sm text-ink outline-none placeholder:text-soft"
         />
       </form>

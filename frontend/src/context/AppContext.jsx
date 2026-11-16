@@ -53,7 +53,7 @@ export function AppProvider({ children }) {
   const updateSettings = useCallback((patch) => setSettings((s) => ({ ...s, ...patch })), []);
 
   // 진단 실행. 성공하면 새 진단을 돌려주고, 실패하면 null 을 돌려주며 안내 문구를 띄웁니다.
-  const startScan = useCallback(async (rawTarget) => {
+  const startScan = useCallback(async (rawTarget, mode = "both") => {
     const target = rawTarget.trim();
     const problem = validateTarget(target);
     if (problem) {
@@ -63,7 +63,7 @@ export function AppProvider({ children }) {
     setScanning(true);
     setNotice(null);
     try {
-      const result = await runScan(target);
+      const result = await runScan(target, mode);
       // 예시 데이터를 보던 중이었다면 예시는 지우고 실제 결과만 남깁니다.
       setScans((list) => (source === "api" ? [result, ...list] : [result]));
       setSource("api");

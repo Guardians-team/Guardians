@@ -36,13 +36,13 @@ export async function loadAll() {
   }
 }
 
-export async function runScan(target) {
+export async function runScan(target, mode = "both") {
   let res;
   try {
     res = await fetch("/api/scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ target }),
+      body: JSON.stringify({ target, mode }),
     });
   } catch {
     throw new Error(OFFLINE);

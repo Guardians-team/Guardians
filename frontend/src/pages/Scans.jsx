@@ -9,15 +9,17 @@ import PageHeader from "../components/ui/PageHeader.jsx";
 import { DoneBadge } from "../components/ui/Badges.jsx";
 import { EyeFilled } from "../components/ui/Icons.jsx";
 import ReportButtons from "../components/ui/ReportButtons.jsx";
+const MODE_LABEL = { both: "정적 + 동적", static: "정적", dynamic: "동적" };
 
 export default function Scans() {
   const { scans, scanning, startScan, removeScan, settings } = useApp();
   const navigate = useNavigate();
   const [target, setTarget] = useState(settings.defaultTarget);
+  const [mode, setMode] = useState("both");
 
   async function submit(e) {
     e.preventDefault();
-    await startScan(target);
+    await startScan(target, mode);
   }
 
   function confirmDelete(scan) {
@@ -36,6 +38,14 @@ export default function Scans() {
             <input id="scan-target" type="text" className="input" value={target} spellCheck={false}
               onChange={(e) => setTarget(e.target.value)} />
           </div>
+          <div className="flex flex-col gap-2">
+  <label htmlFor="scan-mode" className="text-sm font-medium text-soft">분석 방식</label>
+  <select id="scan-mode" className="input cursor-pointer" value={mode} onChange={(e) => setMode(e.target.value)}>
+    <option value="both">정적 + 동적</option>
+    <option value="static">정적 분석</option>
+    <option value="dynamic">동적 분석</option>
+  </select>
+</div>
           <button type="submit" className="btn-primary min-h-[46px] flex-[1_0_auto] px-6 text-[15px]" disabled={scanning}>
             {scanning ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Play size={14} fill="currentColor" aria-hidden="true" />}
             {scanning ? "진단 중…" : "진단 시작"}
@@ -60,6 +70,7 @@ export default function Scans() {
                 <tr className="bg-thead">
                   <th className="th rounded-l-lg">진단 일시</th>
                   <th className="th">대상 URL</th>
+                  <th className="th">분석 방식</th>
                   <th className="th">발견</th>
                   <th className="th">Critical / High</th>
                   <th className="th text-center">상태</th>
@@ -75,6 +86,7 @@ export default function Scans() {
                     <tr key={scan.id} className="border-b border-line last:border-b-0">
                       <td className="td whitespace-nowrap">{when}</td>
                       <td className="td max-w-[260px] truncate">{scan.target}</td>
+                      <td className="td whitespace-nowrap">{MODE_LABEL[scan.mode] || "-"}</td>
                       <td className="td">{s.total}건</td>
                       <td className="td">{s.critHigh}건</td>
                       <td className="td text-center"><DoneBadge /></td>
@@ -85,7 +97,7 @@ export default function Scans() {
                             <EyeFilled />
                           </button>
                           <button type="button" className="icon-btn" aria-label={`${scan.target} 다시 진단`} disabled={scanning}
-                            onClick={() => startScan(scan.target)}>
+                            onClick={() => startScan(scan.target, scan.mode || "both")}>
                             <RotateCw size={18} aria-hidden="true" />
                           </button>
                           <button type="button" className="icon-btn" aria-label={`${when} 진단 기록 삭제`} style={{ color: "var(--pdf-text)" }}
