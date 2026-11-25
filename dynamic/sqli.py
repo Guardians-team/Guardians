@@ -1,13 +1,41 @@
+"""
+SQL Injection 동적 탐지기
+
+폼의 각 입력칸에 공격 문자열을 넣어 보내고, 응답을 비교해 취약 여부를 판단합니다.
+두 가지 방식을 씁니다.
+
+  1. 오류 기반   : 작은따옴표를 넣었을 때만 SQL 오류 문구가 새로 나타나는가
+  2. 참/거짓 비교: 항상 참 / 항상 거짓 조건에서 응답이 뚜렷하게 달라지는가
+
+판정:
+  - 두 방식 모두 걸림           → Confirmed    (Critical)
+  - 참/거짓 비교만 걸림         → Potential    (High)
+  - 오류만 걸림                 → Needs Review (Medium)
+
+이 모듈은 sender.py 로 요청을 보내기만 하고, 서버를 직접 알지 못합니다.
+"""
+
 import re
 
 from .sender import list_input_names, probe_field
 
 
 # 참/거짓 비교용 입력값. 작은따옴표로 기존 조건을 닫고 OR/AND 를 붙입니다.
-TRUE_PAYLOAD = "x' OR '1'='1"
-FALSE_PAYLOAD = "x' AND '1'='2"
-ERROR_PAYLOAD = "'"
-NORMAL_VALUE = "test"
+# 문자열 자리용: 작은따옴표로 기존 조건을 닫고 OR/AND 를 붙입니다.
+STRING_PROBES = {
+    "normal": "test",
+    "error": "'",
+    "true": "x' OR '1'='1",
+    "false": "x' AND '1'='2",
+}
+
+# 숫자 자리용: 따옴표 없이 쓰이는 입력값(예: id)을 위한 값입니다.
+NUMERIC_PROBES = {
+    "normal": "1",
+    "error": "1'",
+    "true": "1 OR 1=1",
+    "false": "1 AND 1=2",
+}
 
 
 def has_sql_error(body, signatures):
@@ -42,42 +70,60 @@ def responses_differ(true_body, false_body):
     return abs(len(true_body) - len(false_body)) > 30
 
 
-def check_field(session, base_url, form, field_name, signatures):
-    """입력칸 하나를 검사해 finding(dict) 하나 또는 None 을 돌려줍니다."""
+def probe_set(session, base_url, form, field_name, signatures, probes):
+    """한 가지 입력값 묶음(문자열용 또는 숫자용)으로 검사하고 근거를 돌려줍니다."""
+    normal = probe_field(session, base_url, form, field_name, probes["normal"])
 
-    # 1. 기준이 되는 정상 응답
-    normal = probe_field(session, base_url, form, field_name, NORMAL_VALUE)
-
-    # 2. 오류 기반: 따옴표를 넣었을 때만 새로 오류가 나타나는가
+    # 1. 오류 기반: 정상값에서는 오류가 없고, 오류 유발값에서만 오류가 나타나는가
     normal_error = has_sql_error(normal.body, signatures)
-    error_probe = probe_field(session, base_url, form, field_name, ERROR_PAYLOAD)
+    error_probe = probe_field(session, base_url, form, field_name, probes["error"])
     error_label = has_sql_error(error_probe.body, signatures)
     error_based = error_label is not None and normal_error is None
 
-    # 3. 참/거짓 비교
-    true_probe = probe_field(session, base_url, form, field_name, TRUE_PAYLOAD)
-    false_probe = probe_field(session, base_url, form, field_name, FALSE_PAYLOAD)
+    # 2. 참/거짓 비교
+    true_probe = probe_field(session, base_url, form, field_name, probes["true"])
+    false_probe = probe_field(session, base_url, form, field_name, probes["false"])
     boolean_based = responses_differ(true_probe.body, false_probe.body)
 
-    if not error_based and not boolean_based:
+    return {
+        "url": normal.url.split("?")[0],
+        "error_based": error_based,
+        "error_label": error_label,
+        "boolean_based": boolean_based,
+        "true_count": result_count(true_probe.body),
+        "false_count": result_count(false_probe.body),
+        "probes": probes,
+    }
+
+
+def check_field(session, base_url, form, field_name, signatures):
+    """입력칸 하나를 검사해 finding(dict) 하나 또는 None 을 돌려줍니다.
+
+    먼저 문자열 자리 기준으로 검사하고, 탐지되지 않으면
+    숫자 자리 기준(따옴표 없이 쓰이는 입력값)으로 한 번 더 검사합니다.
+    """
+    r = probe_set(session, base_url, form, field_name, signatures, STRING_PROBES)
+    if not (r["error_based"] or r["boolean_based"]):
+        r = probe_set(session, base_url, form, field_name, signatures, NUMERIC_PROBES)
+    if not (r["error_based"] or r["boolean_based"]):
         return None
 
     # 판정
-    if error_based and boolean_based:
+    if r["error_based"] and r["boolean_based"]:
         severity, status = "Critical", "Confirmed"
-    elif boolean_based:
+    elif r["boolean_based"]:
         severity, status = "High", "Potential"
     else:
         severity, status = "Medium", "Needs Review"
 
     evidence_parts = []
-    if error_based:
-        evidence_parts.append(f"오류 노출: {error_label}")
-    if boolean_based:
+    if r["error_based"]:
+        evidence_parts.append(f"오류 노출: {r['error_label']}")
+    if r["boolean_based"]:
         evidence_parts.append(
-            f"참/거짓 응답 차이 (참 {result_count(true_probe.body)} / "
-            f"거짓 {result_count(false_probe.body)})"
+            f"참/거짓 응답 차이 (참 {r['true_count']} / 거짓 {r['false_count']})"
         )
+    probes = r["probes"]
 
     return {
         "method": "dynamic",
@@ -85,12 +131,12 @@ def check_field(session, base_url, form, field_name, signatures):
         "severity": severity,
         "status": status,
         "title": "SQL Injection: 입력값이 쿼리 처리에 영향을 줌",
-        "location": normal.url.split("?")[0],
+        "location": r["url"],
         "parameter": field_name,
         "steps": (
-            f"1. {field_name} 입력칸에 작은따옴표(') 입력\n"
-            f"2. 항상 참 조건({TRUE_PAYLOAD})과 "
-            f"항상 거짓 조건({FALSE_PAYLOAD})을 각각 입력\n"
+            f"1. {field_name} 입력칸에 {probes['error']} 입력\n"
+            f"2. 항상 참 조건({probes['true']})과 "
+            f"항상 거짓 조건({probes['false']})을 각각 입력\n"
             f"3. 오류 발생 여부와 응답 결과 비교"
         ),
         "expected": "입력값과 관계없이 쿼리 구조가 유지되어야 함",
